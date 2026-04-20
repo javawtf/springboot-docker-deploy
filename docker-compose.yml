@@ -1,6 +1,21 @@
 version: '3.8'
 
 services:
+  nacos:
+    image: nacos/nacos-server:v2.2.3
+    container_name: nacos-server
+    ports:
+      - "8848:8848"
+      - "9848:9848"
+      - "9849:9849"
+    environment:
+      - MODE=standalone
+      - PREFER_HOST_MODE=hostname
+      - SPRING_DATASOURCE_PLATFORM=mysql
+    restart: unless-stopped
+    networks:
+      - springboot-network
+
   app:
     build:
       context: .
@@ -11,6 +26,11 @@ services:
     restart: unless-stopped
     environment:
       - JAVA_OPTS=-Xms256m -Xmx512m
+      - NACOS_SERVER_ADDR=nacos:8848
+      - NACOS_NAMESPACE=
+      - NACOS_GROUP=DEFAULT_GROUP
+    depends_on:
+      - nacos
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s

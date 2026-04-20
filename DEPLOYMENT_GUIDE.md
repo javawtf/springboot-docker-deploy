@@ -4,8 +4,24 @@
 
 当前项目已包含：
 - `Dockerfile`: 多阶段构建配置，使用Maven构建和OpenJDK运行
-- `docker-compose.yml`: Docker Compose配置，包含健康检查
-- `pom.xml`: 已添加Spring Boot Actuator依赖
+- `docker-compose.yml`: Docker Compose配置，包含健康检查和 Nacos 服务
+- `pom.xml`: 已添加 Spring Boot Actuator、Spring Cloud Alibaba Nacos 依赖
+- **Nacos 服务注册与配置中心**已集成
+
+## Spring Cloud Alibaba + Nacos 集成说明
+
+### 新增功能
+1. **服务注册与发现**: 应用启动时自动注册到 Nacos
+2. **配置中心**: 支持从 Nacos 动态获取配置
+3. **Nacos 控制台**: http://localhost:8848/nacos (默认账号/密码: nacos/nacos)
+
+### 环境变量配置
+
+| 变量名 | 说明 | 默认值 |
+|--------|------|--------|
+| `NACOS_SERVER_ADDR` | Nacos 服务器地址 | 127.0.0.1:8848 |
+| `NACOS_NAMESPACE` | Nacos 命名空间 | (空) |
+| `NACOS_GROUP` | Nacos 配置分组 | DEFAULT_GROUP |
 
 ## 1. GitHub Actions CI/CD配置
 
@@ -108,7 +124,7 @@ management.endpoint.health.show-details=always
 # 构建镜像
 docker-compose build
 
-# 启动服务
+# 启动服务（包含 Nacos）
 docker-compose up -d
 
 # 查看日志
@@ -120,9 +136,29 @@ curl http://localhost:8080/
 # 健康检查
 curl http://localhost:8080/actuator/health
 
+# 访问 Nacos 控制台
+open http://localhost:8848/nacos  # 账号/密码: nacos/nacos
+
 # 停止服务
 docker-compose down
 ```
+
+### Nacos 配置管理
+
+1. 访问 Nacos 控制台: http://localhost:8848/nacos
+2. 登录账号: nacos / nacos
+3. 创建配置:
+   - Data ID: `springboot-docker-deploy.yaml`
+   - Group: `DEFAULT_GROUP`
+   - 配置格式: YAML
+   - 配置内容示例:
+     ```yaml
+     server:
+       port: 8080
+     spring:
+       application:
+         name: springboot-docker-deploy
+     ```
 
 ### CI/CD测试
 
