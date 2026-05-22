@@ -16,6 +16,22 @@ services:
     networks:
       - springboot-network
 
+  minio:
+    image: minio/minio:latest
+    container_name: minio-server
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    restart: unless-stopped
+    networks:
+      - springboot-network
+
   app:
     build:
       context: .
@@ -29,8 +45,14 @@ services:
       - NACOS_SERVER_ADDR=nacos:8848
       - NACOS_NAMESPACE=
       - NACOS_GROUP=DEFAULT_GROUP
+      - MINIO_HOST=minio
+      - MINIO_PORT=9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin
+      - MINIO_BUCKET=springboot-bucket
     depends_on:
       - nacos
+      - minio
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
@@ -39,6 +61,9 @@ services:
       start_period: 60s
     networks:
       - springboot-network
+
+volumes:
+  minio-data:
 
 networks:
   springboot-network:
